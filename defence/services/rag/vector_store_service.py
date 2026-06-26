@@ -6,6 +6,7 @@ backed by Supabase pgvector through LangChain's ``SupabaseVectorStore``.
 """
 import json
 import logging
+import time
 from typing import Optional
 
 from langchain_core.documents import Document
@@ -77,10 +78,16 @@ class SupabaseVectorStoreService:
     def add_documents(
         self,
         documents: list[Document],
-        batch_size: int = 100,
+        batch_size: int = 20,
+        max_retries: int = 4,
     ) -> int:
         """
         Embed and insert *documents* into the vector store in batches.
+
+        Batches are kept small (default 20) and each batch is retried with
+        exponential backoff, because the Supabase PostgREST connection can be
+        reset mid-upload (WinError 10054 / httpx.ReadError) on flaky networks
+        or when the request body is large.
 
         NOTE: ``SupabaseVectorStore.add_documents`` performs INSERTs with
         freshly generated UUIDs - it does *not* upsert by metadata. That
@@ -90,15 +97,17 @@ class SupabaseVectorStoreService:
         """
         store = self._get_store()
         total_added = 0
+        total_batches = (len(documents) + batch_size - 1) // batch_size
 
         try:
             for i in range(0, len(documents), batch_size):
                 batch = documents[i : i + batch_size]
-                store.add_documents(batch)
+                self._add_batch_with_retry(store, batch, max_retries)
                 total_added += len(batch)
                 logger.info(
-                    "Stored batch %d: %d / %d chunks",
+                    "Stored batch %d/%d: %d / %d chunks",
                     i // batch_size + 1,
+                    total_batches,
                     total_added,
                     len(documents),
                 )
@@ -108,6 +117,22 @@ class SupabaseVectorStoreService:
             raise RAGIngestionException(
                 f"Failed to store embeddings: {exc}"
             ) from exc
+
+    def _add_batch_with_retry(self, store, batch, max_retries: int) -> None:
+        """Insert one batch, retrying transient network errors with backoff."""
+        for attempt in range(1, max_retries + 1):
+            try:
+                store.add_documents(batch)
+                return
+            except Exception as exc:  # noqa: BLE001 - postgrest/httpx raise many types
+                if attempt >= max_retries:
+                    raise
+                wait = 2 ** (attempt - 1)  # 1s, 2s, 4s, ...
+                logger.warning(
+                    "Vector insert batch failed (attempt %d/%d): %s — retrying in %ds",
+                    attempt, max_retries, exc, wait,
+                )
+                time.sleep(wait)
 
     # sread 
     def similarity_search(

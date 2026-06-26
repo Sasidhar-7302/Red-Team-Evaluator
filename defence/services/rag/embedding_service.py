@@ -100,10 +100,11 @@ class EmbeddingService:
             )
 
         # Google Gemini embeddings (free tier)
-        # NOTE: Gemini embedding models (e.g. models/text-embedding-004) output
-        # 768 dimensions, NOT 1536. If you use this you must set
-        # EMBEDDING_DIMENSIONS accordingly AND recreate the pgvector column as
-        # vector(768) in sql/rag_setup.sql, or retrieval will fail.
+        # NOTE: Gemini embedding models output fewer dimensions than OpenAI.
+        # gemini-embedding-001 defaults to 3072 dims (too large for pgvector's
+        # 2000-dim HNSW index), so we explicitly request EMBEDDING_DIMENSIONS
+        # (use 768) via output_dimensionality. The pgvector column must match
+        # (vector(768)) — see sql/rag_setup_768.sql.
         if provider in ("google", "gemini", "google_genai"):
             if not api_key:
                 raise EmbeddingConfigurationException(
@@ -119,6 +120,7 @@ class EmbeddingService:
             return GoogleGenerativeAIEmbeddings(
                 model=settings.EMBEDDING_MODEL,
                 google_api_key=api_key,
+                output_dimensionality=settings.EMBEDDING_DIMENSIONS,
             )
 
         raise EmbeddingConfigurationException(
