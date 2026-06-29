@@ -105,6 +105,18 @@ python attack\test_conversation_messages_endpoint.py
 > **Important:** always run from the **project root** (`ImpactPods/Project/`), not from inside
 > the `attack/` folder. The scripts resolve `defence/` relative to the project root.
 
+### Testing against a LIVE server
+If you want to test your **live, running application** (meaning the tests will use your real database and your real LLM), you can use the live testing script. This sends real HTTP requests over the network.
+
+```powershell
+# 1. Start your live application
+uvicorn defence.main:app --reload
+
+# 2. In a separate terminal, run the live attack suite
+python attack\test_live_server.py
+```
+*(If your server runs on a different port than `8000`, simply edit the `BASE_URL` in `test_live_server.py`.)*
+
 ---
 
 ## Reading the Terminal Report
