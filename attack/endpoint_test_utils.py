@@ -44,9 +44,7 @@ from typing import Any, Callable
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DEFENCE_ROOT = PROJECT_ROOT / "defence"
-DEFAULT_EVALUATOR_DIR = Path(
-    r"C:\Users\yepur\Desktop\ImpactPods\Neeraj_PS2\red-team-evaluator"
-)
+DEFAULT_EVALUATOR_DIR = Path(__file__).resolve().parent
 
 
 def bootstrap_defence_app():

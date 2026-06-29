@@ -38,7 +38,7 @@ attack/
 
 Test data (read-only, not modified):
 ```
-../../Neeraj_PS2/red-team-evaluator/data/
+data/
 ├── adversarial_prompts.json      ← 48 cases: jailbreak, role, encoding, data extraction …
 └── pdf_adversarial_prompts.json  ← 15 cases: PDF/document injection attacks
 ```
@@ -218,7 +218,7 @@ python attack\test_chat_endpoint.py
 ```
 
 Default path (hard-coded fallback):
-`C:\Users\yepur\Desktop\ImpactPods\Neeraj_PS2\red-team-evaluator`
+`attack/data/`
 
 ---
 
@@ -237,5 +237,5 @@ application as a black-box. The two branches are designed to be reviewed togethe
 
 - [`defence/GUARDRAILS.md`](../defence/GUARDRAILS.md) — full guardrail architecture documentation
 - [`defence/services/guardrails/patterns.py`](../defence/services/guardrails/patterns.py) — all detection patterns (tune here to close gaps)
-- [`Neeraj_PS2/red-team-evaluator/data/adversarial_prompts.json`](../../Neeraj_PS2/red-team-evaluator/data/adversarial_prompts.json) — 48 adversarial cases
-- [`Neeraj_PS2/red-team-evaluator/data/pdf_adversarial_prompts.json`](../../Neeraj_PS2/red-team-evaluator/data/pdf_adversarial_prompts.json) — 15 PDF injection cases
+- [`Neeraj_PS2/red-team-evaluator/data/adversarial_prompts.json`](data/adversarial_prompts.json) — 48 adversarial cases
+- [`Neeraj_PS2/red-team-evaluator/data/pdf_adversarial_prompts.json`](data/pdf_adversarial_prompts.json) — 15 PDF injection cases
